@@ -31,24 +31,23 @@ tb = float(input("Enter right boundary condition: "))
 g = float(input("Enter Gamma in kg/ms: "))
 
 
-#create list of size n
+# create list of size n
 D = [0]*n
 beta = [0]*n
 alpha = [0]*n
-c =[0]*n
+c = [0]*n
 A = [0]*n
 C = [0]*n
 X = [0]*n
 
-
 dx = l/n
-x=g/dx
-y=rho*u
+x = g/dx
+y = rho*u
 
 
 # Define TDMA function very specific to this numerical solver, for general tdma solver refer : https://github.com/novus-afk/TDMA-Solver
 def TDMA(n, beta, D, alpha, c):
-    
+
     beta[0] = 0
     beta[n-1] = beta[1]
     alpha[0] = alpha[1]
@@ -72,33 +71,33 @@ def TDMA(n, beta, D, alpha, c):
 
     return X
 
+
 def CD():
-    D[0]=(3*x)+y/2
-    D[1]= 2*x
-    D[n-1]=(3*x)-y/2
+    D[0] = (3*x)+y/2
+    D[1] = 2*x
+    D[n-1] = (3*x)-y/2
 
-    beta[1]=x+y/2
-    alpha[1]=x-y/2
+    beta[1] = x+y/2
+    alpha[1] = x-y/2
 
-    c[0]=((2*x)+y)*ta
-    c[n-1]= ((2*x)-y)*tb
-    for i in range(1 , n-1):
-	    c[i]=0
+    c[0] = ((2*x)+y)*ta
+    c[n-1] = ((2*x)-y)*tb
+    for i in range(1, n-1):
+        c[i] = 0
+
 
 def UPWIND():
-    D[0]=(3*x)+y
-    D[1]=(2*x)+y
-    D[n-1]=(3*x)+y
+    D[0] = (3*x)+y
+    D[1] = (2*x)+y
+    D[n-1] = (3*x)+y
 
-    beta[1]=x+y
-    alpha[1]=x
+    beta[1] = x+y
+    alpha[1] = x
 
-    c[0]=((2*x)+y)*ta
-    c[n-1]= 2*x*tb
-    for i in range(1 , n-1):
-	    c[i]=0
-
-
+    c[0] = ((2*x)+y)*ta
+    c[n-1] = 2*x*tb
+    for i in range(1, n-1):
+        c[i] = 0
 
 
 # Switch case for type of numerical
@@ -132,16 +131,35 @@ while choice != "q":
         print("\n\n\tInvalid choice, Try again!\n")
 
 
-
-print(temp)
-
-
-#Create data for Pandas DataFrame
-OUTPUT = list(zip(beta , D , alpha , c , A , C , X))
-#create Pandas DataFrame
-result = pd.DataFrame(data = OUTPUT, columns = ["\N{GREEK SMALL LETTER BETA}","Diagonal (D)","\N{GREEK SMALL LETTER ALPHA}","Constants","A","C'","X" ])
-#Change index to 1,2,3,.....
+# Create data for Pandas DataFrame
+OUTPUT = list(zip(beta, D, alpha, c, A, C, X))
+# create Pandas DataFrame
+result = pd.DataFrame(data=OUTPUT, columns=[
+                      "\N{GREEK SMALL LETTER BETA}", "Diagonal (D)", "\N{GREEK SMALL LETTER ALPHA}", "Constants", "A", "C'", "X"])
+# Change index to 1,2,3,.....
 result.index = result.index + 1
 print(result)
+
+
+#export result ot excel sheet
+export = ""
+while export != "q":
+    print("""\n\n\t[ y ] Enter y to export the table to CD.xlsx
+    
+        [ q ] Enter q to exit without exporting\n\n""")
+    export = input("Enter your choice :\t")
+
+    if (export == "y"):
+        result.insert(0, 'Sr.No.', range(1, 1 + len(result))) #add serial no  column at the start of the DataFrame
+        result.to_excel('CD.xlsx', sheet_name = 'Output', index = False) #.to_excel to export excel file
+        print("\n\n*************** Export to nTDMA.xlsx complete. ***************\n\n")
+        break
+
+    elif (export == "q"):
+        print("\n\n***** Result not exported to excel. *****\n\n")
+        break
+    
+    else : print("\n\t\tInvalid Choice, Try again!")
+
 
 input("Press enter to exit")
