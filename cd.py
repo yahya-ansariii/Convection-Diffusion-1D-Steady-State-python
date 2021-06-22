@@ -14,21 +14,26 @@
    limitations under the License.
 '''
 import pandas as pd
+import math
+import matplotlib.pyplot as plt
 
-print("\n \t\t UPWIND Solver\n")
-n = int(input("\nEnter the no. of grid points: "))
+print("\n \t\t Convection Diffusion Solver\n")
+print("\nRead more about this solver in repository readme!")
 
-l = float(input("Enter length of plate in m: "))
+# get input from user
+n = int(input("\n\tEnter the no. of grid points :   "))
 
-u = float(input("Enter velocity in m/s: "))
+l = float(input("\n\tEnter length of plate in m :   "))
 
-rho = float(input("Enter density in kg/m3: "))
+u = float(input("\n\tEnter velocity in m/s :   "))
 
-ta = float(input("Enter left boundary condition: "))
+rho = float(input("\n\tEnter density in kg/m3 :   "))
 
-tb = float(input("Enter right boundary condition: "))
+ta = float(input("\n\tEnter left boundary condition :   "))
 
-g = float(input("Enter Gamma in kg/ms: "))
+tb = float(input("\n\tEnter right boundary condition :   "))
+
+g = float(input("\n\tEnter Gamma in kg/ms :   "))
 
 
 # create list of size n
@@ -39,7 +44,11 @@ c = [0]*n
 A = [0]*n
 C = [0]*n
 X = [0]*n
+XA = [0]*n
+XX = [0]*n
+Err = [0]*n
 
+# calculate dx, D and F
 dx = l/n
 x = g/dx
 y = rho*u
@@ -47,7 +56,6 @@ y = rho*u
 
 # Define TDMA function very specific to this numerical solver, for general tdma solver refer : https://github.com/novus-afk/TDMA-Solver
 def TDMA(n, beta, D, alpha, c):
-
     beta[0] = 0
     beta[n-1] = beta[1]
     alpha[0] = alpha[1]
@@ -113,13 +121,13 @@ while choice != "q":
     choice = input("\n\tEnter Choice :\t")
 
     if choice == "1":
-        print("\n\tCentral Differencing Scheme\n")
+        print("\n---> Central Differencing Scheme\n")
         CD()
         temp = TDMA(n, beta, D, alpha, c)
         break
 
     elif choice == "2":
-        print("\n\tUPWIND Scheme\n")
+        print("\n---> UPWIND Scheme\n")
         UPWIND()
         temp = TDMA(n, beta, D, alpha, c)
         break
@@ -131,35 +139,74 @@ while choice != "q":
         print("\n\n\tInvalid choice, Try again!\n")
 
 
+# analytical solution
+for w in range(0, n):
+    XX[w] = dx*0.5 + (dx * w)
+    n1 = rho * u * XX[w] / g
+    n2 = rho * u * l / g
+    XA[w] = ta + (((math.exp(n1)-1)/(math.exp(n2)-1))*(tb-ta))
+    Err[w] = ((XA[w] - X[w]) * 100*2) / (XA[w] + X[w])
+
 # Create data for Pandas DataFrame
-OUTPUT = list(zip(beta, D, alpha, c, A, C, X))
+OUTPUT = list(zip(beta, D, alpha, c, A, C, X, XA, Err))
 # create Pandas DataFrame
 result = pd.DataFrame(data=OUTPUT, columns=[
-                      "\N{GREEK SMALL LETTER BETA}", "Diagonal (D)", "\N{GREEK SMALL LETTER ALPHA}", "Constants", "A", "C'", "X"])
+                      "\N{GREEK SMALL LETTER BETA}", "Diagonal (D)", "\N{GREEK SMALL LETTER ALPHA}", "Constants", "A", "C'", "X", "X-Analytical", "% Error"])
 # Change index to 1,2,3,.....
 result.index = result.index + 1
 print(result)
 
 
-#export result ot excel sheet
+# plot and show graph
+# adding initial and final conditions to the list, as list contains values at nodes
+X.insert(0, ta)
+X.append(tb)
+XA.insert(0, ta)
+XA.append(tb)
+XX.insert(0, 0)
+XX.append(l)
+
+graph = pd.DataFrame({'X Numerical': X, 'X Exact(Analytical)': XA}, index=XX)
+# graph.plot()
+plt.plot(graph, marker='.')
+plt.title("X-Distance Graph")
+plt.xlabel("Distance(m)")
+plt.ylabel("X")
+plt.grid()
+plt.legend(['X Numerical', 'X Exact(Analytical)'])
+figure = plt.gcf()
+print('''\n********** Plot Graph complete **********
+
+* * * * *   Graph Displayed   * * * * *
+
+*****     Close Graph to Continue     *****\n''')
+plt.show()
+
+
+# save result ot excel sheet
 export = ""
 while export != "q":
-    print("""\n\n\t[ y ] Enter y to export the table to CD.xlsx
+    print("""\n\n\t[ y ] Enter y to export table and graph to output folder.
     
-        [ q ] Enter q to exit without exporting\n\n""")
-    export = input("Enter your choice :\t")
+        [ q ] Enter q to exit without exporting.\n\n""")
+    export = input("Enter your choice :   \t")
 
     if (export == "y"):
-        result.insert(0, 'Sr.No.', range(1, 1 + len(result))) #add serial no  column at the start of the DataFrame
-        result.to_excel('CD.xlsx', sheet_name = 'Output', index = False) #.to_excel to export excel file
-        print("\n\n*************** Export to nTDMA.xlsx complete. ***************\n\n")
+        # add serial no  column at the start of the DataFrame
+        result.insert(0, 'Sr.No.', range(1, 1 + len(result)))
+        # .to_excel to export excel file
+        result.to_excel('output/CD.xlsx', sheet_name='Output', index=False)
+        # save graph
+        figure.savefig("output/graph.png")
+        print("\n\n*************** Export result to output folder complete. ***************\n\n")
         break
 
     elif (export == "q"):
-        print("\n\n***** Result not exported to excel. *****\n\n")
+        print("\n\n***** Result not saved to excel. *****\n\n")
         break
-    
-    else : print("\n\t\tInvalid Choice, Try again!")
+
+    else:
+        print("\n\t\tInvalid Choice, Try again!")
 
 
-input("Press enter to exit")
+input("Press Enter to exit")
