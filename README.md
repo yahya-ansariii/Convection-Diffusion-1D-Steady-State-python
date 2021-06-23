@@ -13,7 +13,7 @@ The Analytical solution is given by
 
 The python code has all the necessary comments to understand the solver.
 
-_**Note** : In this solver cross sectional area is not required as we deal in one dimension only, so we measure steady convection diffusion across the length only._
+_**Note** : In this solver cross sectional area is not required as we deal in one dimension only, so we measure steady state convection diffusion across the length only._
 
 
 ## Motivation
