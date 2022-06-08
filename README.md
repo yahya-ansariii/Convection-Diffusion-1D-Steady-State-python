@@ -3,6 +3,10 @@
 
 Read _[CD.pdf](CD.pdf)_ in the repository to understand the Convection Diffusion 1D steady state. If you want to study about Finite Volume Methods in detail then refer **'An Introduction to Computational Fluid Dynamics - The Finite Volume Method'** by _H K Versteeg and W Malalasekera._
 
+Click on the following link to checkout the video to easily use this python code.
+
+- [YOUTUBE](https://youtu.be/2x0NZ7Wg1Vo)
+
 The _governing equation_ used in the python code is
 
 ![governing equation](images/ge.PNG)
